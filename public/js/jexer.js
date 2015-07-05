@@ -96,7 +96,7 @@ Jexer.tokenize = function(line){
     },[]);
   }else if( line.match(/[０-９]+/) ){
     var singleByte = line.replace(/[０-９]/g,function(s){return String.fromCharCode(s.charCodeAt(0)-0xFEE0)})
-    return [parseInt(singleByte.match(/[0-9]+/))]
+    return Jexer.tokenize(singleByte);
   }else if( line.match(/[0-9]+/) ){
     return [parseInt(line.match(/[0-9]+/))]
   }else{
