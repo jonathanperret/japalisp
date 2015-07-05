@@ -30,83 +30,65 @@ Jexer.tokenize = function(line){
   };
 
   var rest;
-  if( line.match(/っていうのは/) ){
-    rest = line.replace(/っていうのは.*$/,'');
+  if( line.match(/^(.*)っていうのは/) ){
+    rest = RegExp.$1;
     return ["DEFINE"].concat(Jexer.tokenize(rest));
-  }else if( line.match(/^もし/) ){
-    rest = line.replace(/^もし/,'');
-    var exp = rest.split(/だったら|なら/);
-    var predicate = exp[0],
-        body = exp[1];
+  }else if( line.match(/^もし(.*?)(?:だったら|なら)(.*)$/) ){
+    var predicate = RegExp.$1,
+        body = RegExp.$2;
     return ["IF",
       Jexer.tokenize(predicate),
       Jexer.tokenize(body)
     ]
   }else if( line.match(/それ以外(だったら|なら)、?$/) ){
     return ["ELSE"]
-  }else if( line.match(/を使って/) ){
-    rest = line.replace(/を使って.*$/,'');
+  }else if( line.match(/^(.*)を使って/) ){
+    rest = RegExp.$1;
     return Jexer.tokenize(rest);
-  }else if( line.match(/を(返す|返して|教えてね?)/) ){
-    rest = line.replace(/を(返す|返して|教えてね?).*$/,'');
+  }else if( line.match(/^(.*)を(返す|返して|教えてね?)/) ){
+    rest = RegExp.$1;
     return Jexer.tokenize(rest);
-  }else if( line.match(/を(計算)?し(続け(てね|るんだよ)?|た(結果|もの))$/)){
-    rest = line.replace(/を(計算)?し(続け(てね|るんだよ)?|た(結果|もの))$/,'');
-    var exp = rest.split(/(で)/);
-    var id = exp.slice(-1).join(''),
-        args = exp.slice(0,-2).join('');
+  }else if( line.match(/^(?:(.*)で)?(.+)を(計算)?し(続け(てね|るんだよ)?|た(結果|もの))$/)){
+    var id = RegExp.$2,
+        args = RegExp.$1;
     var splitter = determine_splitter(args, "と", "、");
-    var argTokens = args.split(splitter).map(function(arg){
-      return Jexer.tokenize(arg);
-    });
+    var argTokens = args.split(splitter).map(Jexer.tokenize);
     return [id].concat(argTokens);
-  }else if( line.match(/をかけ(てみて|た(結果|もの))$/) ){
-    rest = line.replace(/をかけ(てみて|た(結果|もの)).*$/, '');
+  }else if( line.match(/^(.*)をかけ(てみて|た(結果|もの))$/) ){
+    rest = RegExp.$1;
     var splitter = determine_splitter(rest, "と", "、");
-    var argTokens = rest.split(splitter).map(function(arg){
-      return Jexer.tokenize(arg);
-    });
+    var argTokens = rest.split(splitter).map(Jexer.tokenize);
     return ["*"].concat(argTokens);
-  }else if( line.match(/を足し(てみて|た(もの|数))$/) ){
-    rest = line.replace(/を足し(てみて|た(もの|数))$/,'');
+  }else if( line.match(/^(.*)を足し(てみて|た(もの|数))$/) ){
+    rest = RegExp.$1;
     var splitter = determine_splitter(rest, "に", "、");
-    var argTokens = rest.split(splitter).map(function(arg){
-      return Jexer.tokenize(arg);
-    });
+    var argTokens = rest.split(splitter).map(Jexer.tokenize);
     return ["+"].concat(argTokens);
-  }else if( line.match(/で一つ増やした数$/) ){
-    rest = line.replace(/で一つ増やした数$/,'');
+  }else if( line.match(/^(.*)で一つ増やした数$/) ){
+    rest = RegExp.$1;
     return ["+", Jexer.tokenize(rest), [1]];
-  }else if( line.match(/で一つ減らした数$/) ){
-    rest = line.replace(/で一つ減らした数$/,'');
+  }else if( line.match(/^(.*)で一つ減らした数$/) ){
+    rest = RegExp.$1;
     return ["-", Jexer.tokenize(rest), [1]];
-  }else if( line.match(/を引い(てみて|た(もの|数))$/) ){
-    rest = line.replace(/を引い(てみて|た(もの|数))$/,'');
+  }else if( line.match(/^(.*)を引い(てみて|た(もの|数))$/) ){
+    rest = RegExp.$1;
     var splitter = determine_splitter(rest, "から", "、");
-    var exp = rest.split(new RegExp('('+splitter+')'));
-    var args = [exp.slice(0,-2).join('')].concat(exp.slice(-1));
-    var argTokens = args.map(function(arg){
-      return Jexer.tokenize(arg);
-    });
+    var argTokens = rest.split(splitter).map(Jexer.tokenize);
     return ["-"].concat(argTokens);
-  }else if( line.match(/してみて/) ){
-    rest = line.replace(/してみて.*$/,'');
+  }else if( line.match(/^(.*)してみて/) ){
+    rest = RegExp.$1;
     return Jexer.tokenize(rest);
   }else if( line.match(/その/) ){
     var rest = line.replace(/その/g,'');
     return Jexer.tokenize(rest);
-  }else if( strMatch = line.match(/^「(.*)」$/)){
-    return ["STR", strMatch[1]]
-  }else if( line.match(/が/) ){
-    var args = line.split(/が/);
-    return ["==", Jexer.tokenize(args[0]), Jexer.tokenize(args[1])]
-  }else if( line.match(/で/) ){
-    var exp = line.split(/で/);
-    var identifier = exp.slice(-1).join('');
-    var rest = exp.slice(0,-1).join('');
-    var argTokens = rest.split(/と、?/).map(function(arg){
-      return Jexer.tokenize(arg);
-    });
+  }else if( line.match(/^「(.*)」$/)){
+    return ["STR", RegExp.$1]
+  }else if( line.match(/^(.*)が(.*)$/) ){
+    return ["==", Jexer.tokenize(RegExp.$1), Jexer.tokenize(RegExp.$2)]
+  }else if( line.match(/^(.*)で(.*)$/) ){
+    var identifier = RegExp.$2;
+    var rest = RegExp.$1;
+    var argTokens = rest.split(/と、?/).map(Jexer.tokenize);
     return Jexer.tokenize(identifier).concat(argTokens);
   }else if( line.match(/と、?/) ){
     return line.split(/と、?/).reduce(function(accu,partial_line){
