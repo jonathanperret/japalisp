@@ -22,7 +22,7 @@ Jexer.tokenize = function(line){
 
   // we prioritize a suffix with delimiter
   var determine_splitter = function(str, suffix, delimiter){
-    if(str.split(suffix + delimiter).length > 1){
+    if(str.indexOf(suffix + delimiter) > 0){
       return suffix + delimiter
     }else{
       return suffix
