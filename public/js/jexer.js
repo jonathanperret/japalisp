@@ -13,13 +13,7 @@ Jexer.tokenizeWhole = function(code){
 }
 
 Jexer.tokenizeSentence = function(sentence){
-  var tokens;
-  tokens = sentence.split(/\s+/).reduce(function(acc,line){
-    var partial_tokens = Jexer.tokenize(line);
-    acc.push(partial_tokens);
-    return acc
-  },[]);
-  return tokens;
+  return sentence.split(/\s+/).map(Jexer.tokenize);
 }
 
 Jexer.tokenize = function(line){
